@@ -182,6 +182,12 @@ void SBI_BillboardDestroy(SBI_Billboard* billboard) {
   SDL_ReleaseGPUBuffer(billboard->device, billboard->buffer);
   SDL_ReleaseGPUTransferBuffer(billboard->device,
                                billboard->upload_transfer_buffer);
+
+  if (billboard->instances != NULL) {
+    SDL_aligned_free(billboard->instances);
+    billboard->instances = NULL;
+    billboard->instances_count = 0;
+  }
 }
 
 float remap_value(float value,
