@@ -67,7 +67,8 @@ bool SBI_SimulationRender(SBI_Simulation* state, float dt) {
       SBI_Camera* camera = &state->camera;
 
       // Draw the grid
-      SBI_GridDraw(&state->grid, camera->proj, camera->view, render_pass);
+      SBI_GridDraw(&state->grid, camera->proj, camera->view, cmd_buf,
+                   render_pass);
     }
     SDL_EndGPURenderPass(render_pass);
   }

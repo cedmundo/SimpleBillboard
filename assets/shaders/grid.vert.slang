@@ -1,4 +1,3 @@
-
 struct ViewParams {
   float4x4 pv;
   float4x4 pvInv;
@@ -15,15 +14,13 @@ struct VSOutput {
   float4 position : SV_Position;
 };
 
-StructuredBuffer<ViewParams> viewParams;
-
 static const float2[] quad_vertices = {
-  float2(-1.0f, +1.0f), // bottom left
-  float2(-1.0f, -1.0f), // top left
-  float2(+1.0f, -1.0f), // top right
-  float2(+1.0f, -1.0f), // top right
-  float2(+1.0f, +1.0f), // bottom right
-  float2(-1.0f, +1.0f), // bottom left
+  float2(-1.0f, +1.0f),  // bottom left
+  float2(-1.0f, -1.0f),  // top left
+  float2(+1.0f, -1.0f),  // top right
+  float2(+1.0f, -1.0f),  // top right
+  float2(+1.0f, +1.0f),  // bottom right
+  float2(-1.0f, +1.0f),  // bottom left
 };
 
 float3 unprojectedPoint(float x, float y, float z, float4x4 pvInv) {
@@ -31,15 +28,17 @@ float3 unprojectedPoint(float x, float y, float z, float4x4 pvInv) {
   return unprojected.xyz / unprojected.w;
 }
 
+layout(set = 1, binding = 0) ConstantBuffer<ViewParams> viewParams;
+
 [shader("vertex")]
 VSOutput vertexMain(VSInput input) {
   VSOutput output;
   float2 vertexPos = quad_vertices[input.idx];
-  output.pv = viewParams[0].pv;
+  output.pv = viewParams.pv;
   output.nearPoint =
-      unprojectedPoint(vertexPos.x, vertexPos.y, 0.01f, viewParams[0].pvInv);
+      unprojectedPoint(vertexPos.x, vertexPos.y, 0.01f, viewParams.pvInv);
   output.farPoint =
-      unprojectedPoint(vertexPos.x, vertexPos.y, 1.0f, viewParams[0].pvInv);
+      unprojectedPoint(vertexPos.x, vertexPos.y, 1.0f, viewParams.pvInv);
   output.position = float4(vertexPos.x, vertexPos.y, 0.0f, 1.0f);
   return output;
 }

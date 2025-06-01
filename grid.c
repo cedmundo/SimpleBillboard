@@ -7,7 +7,7 @@
 typedef struct {
   SBI_ALIGN_MAT4 SBI_Mat4 pv;
   SBI_ALIGN_MAT4 SBI_Mat4 pv_inv;
-} Grid_ViewParams;
+} GridUniforms;
 
 bool SBI_GridLoad(SBI_Grid* grid, SDL_GPUDevice* device, SDL_Window* window) {
   grid->device = device;
@@ -15,8 +15,8 @@ bool SBI_GridLoad(SBI_Grid* grid, SDL_GPUDevice* device, SDL_Window* window) {
       .filename = "grid.vert",
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .sampler_count = 0,
-      .uniform_buffer_count = 0,
-      .storage_buffer_count = 1,
+      .uniform_buffer_count = 1,
+      .storage_buffer_count = 0,
       .storage_texture_count = 0,
   };
   SDL_GPUShader* vert_shader = SBI_ShaderLoad(device, vert_options);
@@ -72,75 +72,23 @@ bool SBI_GridLoad(SBI_Grid* grid, SDL_GPUDevice* device, SDL_Window* window) {
     return false;
   }
 
-  // Create buffer location for transform
-  SDL_GPUBufferCreateInfo buffer_create_info = {
-      .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-      .size = sizeof(Grid_ViewParams),
-  };
-  grid->buffer = SDL_CreateGPUBuffer(device, &buffer_create_info);
-  if (grid->buffer == NULL) {
-    SDL_Log("Couldn't create buffer to store the params of debug grid");
-    return false;
-  }
-
-  // Create transfer buffer handle
-  SDL_GPUTransferBufferCreateInfo upload_transfer_buffer_create_info = {
-      .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-      .size = sizeof(Grid_ViewParams),
-  };
-  grid->upload_transfer_buffer =
-      SDL_CreateGPUTransferBuffer(device, &upload_transfer_buffer_create_info);
-  if (grid->upload_transfer_buffer == NULL) {
-    SDL_Log("Couldn't create transfer buffer of debug grid");
-    return false;
-  }
-
   return true;
 }
 
 void SBI_GridDraw(SBI_Grid* grid,
                   const SBI_Mat4 proj,
                   const SBI_Mat4 view,
+                  SDL_GPUCommandBuffer* cmd_buf,
                   SDL_GPURenderPass* render_pass) {
-  Grid_ViewParams view_params = {0};
-  SBI_Mat4Mul(proj, view, view_params.pv);
-  SBI_Mat4Invert(view_params.pv, view_params.pv_inv);
+  GridUniforms uniforms = {0};
+  SBI_Mat4Mul(proj, view, uniforms.pv);
+  SBI_Mat4Invert(uniforms.pv, uniforms.pv_inv);
 
   SDL_BindGPUGraphicsPipeline(render_pass, grid->pipeline);
-  {
-    // Copy data to the staging of the GPU
-    void* transfer_point =
-        SDL_MapGPUTransferBuffer(grid->device, grid->upload_transfer_buffer, 0);
-    SDL_memcpy(transfer_point, &view_params, sizeof(Grid_ViewParams));
-    SDL_UnmapGPUTransferBuffer(grid->device, grid->upload_transfer_buffer);
-
-    // Create a copy pass
-    SDL_GPUCommandBuffer* upload_cmd_buf =
-        SDL_AcquireGPUCommandBuffer(grid->device);
-    SDL_GPUCopyPass* copy_pass = SDL_BeginGPUCopyPass(upload_cmd_buf);
-    {
-      SDL_GPUTransferBufferLocation source = {
-          .transfer_buffer = grid->upload_transfer_buffer,
-          .offset = 0,
-      };
-      SDL_GPUBufferRegion destination = {
-          .buffer = grid->buffer,
-          .offset = 0,
-          .size = sizeof(Grid_ViewParams),
-      };
-
-      SDL_UploadToGPUBuffer(copy_pass, &source, &destination, false);
-      SDL_EndGPUCopyPass(copy_pass);
-      SDL_SubmitGPUCommandBuffer(upload_cmd_buf);
-    }
-
-    SDL_BindGPUVertexStorageBuffers(render_pass, 0, &grid->buffer, 1);
-    SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
-  }
+  SDL_PushGPUVertexUniformData(cmd_buf, 0, &uniforms, sizeof(GridUniforms));
+  SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
 }
 
 void SBI_GridUnload(SBI_Grid* grid) {
   SDL_ReleaseGPUGraphicsPipeline(grid->device, grid->pipeline);
-  SDL_ReleaseGPUTransferBuffer(grid->device, grid->upload_transfer_buffer);
-  SDL_ReleaseGPUBuffer(grid->device, grid->buffer);
 }
