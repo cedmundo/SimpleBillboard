@@ -4,7 +4,8 @@ struct ViewParams {
 };
 
 struct BillboardInstance {
-  float4 ps;
+  float3 position;
+  float scale;
 };
 
 struct VSInput {
@@ -33,22 +34,21 @@ layout(set = 1, binding = 0) ConstantBuffer<ViewParams> viewParams;
 VSOutput vertexMain(VSInput input) {
   VSOutput output;
   BillboardInstance instance = instances[input.instanceID];
-  float3 bPos = float3(instance.ps.x, instance.ps.y, instance.ps.z);
-  float scale = instance.ps.w;
+  float3 instancePos = instance.position;
+  float instanceScale = instance.scale;
 
   float4 vertexPos = float4(quadXYVertices[input.vertexID], 0.0f, 1.0f);
-  float3 f = normalize(viewParams.viewPos - bPos);
-  float3 u = normalize(cross(f, float3(0, 1, 0)));
-  float3 r = normalize(cross(u, f));
+  float3 f = normalize(viewParams.viewPos - instancePos);
+  float3 r = normalize(cross(float3(0, 1, 0), f));
+  float3 u = normalize(cross(f, r));
 
-  f *= scale;
-  u *= scale;
-  r *= scale;
+  u *= instanceScale;
+  r *= instanceScale;
 
   float4x4 model = {
-    { r.x, u.x, f.x, bPos.x },
-    { r.y, u.y, f.y, bPos.y },
-    { r.z, u.z, f.z, bPos.z },
+    { r.x, u.x, f.x, instancePos.x },
+    { r.y, u.y, f.y, instancePos.y },
+    { r.z, u.z, f.z, instancePos.z },
     { 0, 0, 0, 1 },
   };
   output.pv = viewParams.pv;
