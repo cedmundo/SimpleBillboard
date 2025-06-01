@@ -1,1 +1,2 @@
 add_shader_target(grid_shader grid)
+add_shader_target(billboard_shader billboard)

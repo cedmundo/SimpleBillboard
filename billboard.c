@@ -1,4 +1,4 @@
-#include "grid.h"
+#include "billboard.h"
 #include "shader.h"
 
 #include <SDL3/SDL_gpu.h>
@@ -6,13 +6,15 @@
 
 typedef struct {
   SBI_ALIGN_MAT4 SBI_Mat4 pv;
-  SBI_ALIGN_MAT4 SBI_Mat4 pv_inv;
-} GridUniforms;
+  SBI_ALIGN_VEC3 SBI_Vec3 view_pos;
+} BillboardUniforms;
 
-bool SBI_GridLoad(SBI_Grid* grid, SDL_GPUDevice* device, SDL_Window* window) {
-  grid->device = device;
+bool SBI_BillboardLoad(SBI_Billboard* billboard,
+                       SDL_GPUDevice* device,
+                       SDL_Window* window) {
+  billboard->device = device;
   SBI_ShaderOptions vert_options = (SBI_ShaderOptions){
-      .filename = "grid.vert",
+      .filename = "billboard.vert",
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .sampler_count = 0,
       .uniform_buffer_count = 1,
@@ -25,7 +27,7 @@ bool SBI_GridLoad(SBI_Grid* grid, SDL_GPUDevice* device, SDL_Window* window) {
   }
 
   SBI_ShaderOptions frag_options = (SBI_ShaderOptions){
-      .filename = "grid.frag",
+      .filename = "billboard.frag",
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
       .sampler_count = 0,
       .uniform_buffer_count = 0,
@@ -62,33 +64,36 @@ bool SBI_GridLoad(SBI_Grid* grid, SDL_GPUDevice* device, SDL_Window* window) {
       .vertex_shader = vert_shader,
       .fragment_shader = frag_shader,
   };
-  grid->pipeline = SDL_CreateGPUGraphicsPipeline(device, &pipeline_create_info);
+  billboard->pipeline =
+      SDL_CreateGPUGraphicsPipeline(device, &pipeline_create_info);
 
   SDL_ReleaseGPUShader(device, vert_shader);
   SDL_ReleaseGPUShader(device, frag_shader);
 
-  if (grid->pipeline == NULL) {
-    SDL_Log("Couldn't create graphics pipeline for debug grid");
+  if (billboard->pipeline == NULL) {
+    SDL_Log("Couldn't create graphics pipeline for billboard");
     return false;
   }
 
   return true;
 }
 
-void SBI_GridDraw(SBI_Grid* grid,
-                  const SBI_Mat4 proj,
-                  const SBI_Mat4 view,
-                  SDL_GPUCommandBuffer* cmd_buf,
-                  SDL_GPURenderPass* render_pass) {
-  GridUniforms uniforms = {0};
+void SBI_BillboardDraw(SBI_Billboard* billboard,
+                       const SBI_Mat4 proj,
+                       const SBI_Mat4 view,
+                       const SBI_Vec3 view_pos,
+                       SDL_GPUCommandBuffer* cmd_buf,
+                       SDL_GPURenderPass* render_pass) {
+  BillboardUniforms uniforms = {0};
   SBI_Mat4Mul(proj, view, uniforms.pv);
-  SBI_Mat4Invert(uniforms.pv, uniforms.pv_inv);
+  SBI_Vec3Copy(view_pos, uniforms.view_pos);
 
-  SDL_BindGPUGraphicsPipeline(render_pass, grid->pipeline);
-  SDL_PushGPUVertexUniformData(cmd_buf, 0, &uniforms, sizeof(GridUniforms));
+  SDL_BindGPUGraphicsPipeline(render_pass, billboard->pipeline);
+  SDL_PushGPUVertexUniformData(cmd_buf, 0, &uniforms,
+                               sizeof(BillboardUniforms));
   SDL_DrawGPUPrimitives(render_pass, 6, 1, 0, 0);
 }
 
-void SBI_GridDestroy(SBI_Grid* grid) {
-  SDL_ReleaseGPUGraphicsPipeline(grid->device, grid->pipeline);
+void SBI_BillboardDestroy(SBI_Billboard* billboard) {
+  SDL_ReleaseGPUGraphicsPipeline(billboard->device, billboard->pipeline);
 }

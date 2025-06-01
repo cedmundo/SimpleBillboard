@@ -21,6 +21,6 @@ void SBI_GridDraw(SBI_Grid* grid,
                   SDL_GPURenderPass* render_pass);
 
 // Unload the debug grid resources
-void SBI_GridUnload(SBI_Grid* grid);
+void SBI_GridDestroy(SBI_Grid* grid);
 
 #endif /* SBI_GRID_H */

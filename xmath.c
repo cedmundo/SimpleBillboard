@@ -56,6 +56,12 @@ void SBI_Vec3Cross(const SBI_Vec3 a, const SBI_Vec3 b, SBI_Vec3 dest) {
   dest[2] = a[0] * b[1] - a[1] * b[0];
 }
 
+void SBI_Vec3Copy(const SBI_Vec3 src, SBI_Vec3 dest) {
+  dest[0] = src[0];
+  dest[1] = src[1];
+  dest[2] = src[2];
+}
+
 float SBI_Vec3LenSq(const SBI_Vec3 v) {
   return SBI_Vec3Dot(v, v);
 }
@@ -146,7 +152,9 @@ void SBI_QuatTransformVec3(const SBI_Quat q, const SBI_Vec3 v, SBI_Vec3 dest) {
   SBI_Vec3Add(dest, c, dest);
 }
 
-void SBI_QuatLookRotation(const SBI_Vec3 dir, const SBI_Vec3 up, SBI_Quat dest) {
+void SBI_QuatLookRotation(const SBI_Vec3 dir,
+                          const SBI_Vec3 up,
+                          SBI_Quat dest) {
   SBI_ALIGN_MAT4 SBI_Mat4 m = {0};
   SBI_ALIGN_VEC3 SBI_Vec3 a = {0};
   SBI_ALIGN_VEC3 SBI_Vec3 b = {0};
@@ -213,7 +221,11 @@ void SBI_QuatToMat4(const SBI_Quat q, SBI_Mat4 dest) {
   dest[WW] = 1.0f;
 }
 
-void SBI_Mat4Perspective(float fov, float aspect, float near, float far, SBI_Mat4 dest) {
+void SBI_Mat4Perspective(float fov,
+                         float aspect,
+                         float near,
+                         float far,
+                         SBI_Mat4 dest) {
   float const e = 1.0f / SDL_tanf(fov / 2.0f);
   float const f = 1.0f / (near - far);
 
@@ -238,7 +250,9 @@ void SBI_Mat4Perspective(float fov, float aspect, float near, float far, SBI_Mat
   dest[WW] = 0.0f;
 }
 
-void SBI_Mat4PerspectiveResize(const SBI_Mat4 src, float aspect, SBI_Mat4 dest) {
+void SBI_Mat4PerspectiveResize(const SBI_Mat4 src,
+                               float aspect,
+                               SBI_Mat4 dest) {
   if (src[XX] == 0.0f) {
     return;
   }
@@ -396,7 +410,9 @@ void SBI_XFormIdentity(SBI_XForm dest) {
   dest[9] = 1.0f;
 }
 
-void SBI_XFormTranslate(const SBI_XForm src, const SBI_Vec3 position, SBI_XForm dest) {
+void SBI_XFormTranslate(const SBI_XForm src,
+                        const SBI_Vec3 position,
+                        SBI_XForm dest) {
   // rotation (quat)
   dest[0] = src[0];
   dest[1] = src[1];
@@ -429,4 +445,8 @@ void SBI_XFormToView(const SBI_XForm xform, SBI_Mat4 view) {
   SBI_QuatToMat4(xform, view);
   SBI_Mat4TransformVec4(view, pos, &view[WX]);
   SBI_Vec3Negate(&view[WX], &view[WX]);
+}
+
+void SBI_XFormGetPosition(const SBI_XForm xform, SBI_Vec3 position) {
+  SBI_Vec3Copy(&xform[4], position);
 }

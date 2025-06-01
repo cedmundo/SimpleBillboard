@@ -6,6 +6,7 @@
 #include <SDL3/SDL_gpu.h>
 // clang-format on
 
+#include "billboard.h"
 #include "camera.h"
 #include "grid.h"
 #include "shader.h"
@@ -19,6 +20,7 @@ typedef struct {
   SDL_GPUViewport viewport;
   SBI_Camera camera;
   SBI_Grid grid;
+  SBI_Billboard billboard;
   Uint64 last_tick;
   float iter_delta_time;
   float cur_frame_time;

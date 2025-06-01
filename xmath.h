@@ -57,6 +57,9 @@ void SBI_Vec3Normalize(const SBI_Vec3 src, SBI_Vec3 dest);
 // Negates a vec3 into dest
 void SBI_Vec3Negate(const SBI_Vec3 src, SBI_Vec3 dest);
 
+// Copies values from src into dest
+void SBI_Vec3Copy(const SBI_Vec3 src, SBI_Vec3 dest);
+
 // Creates a quaternion using axis and angle into dest
 void SBI_QuatMakeAxisAngle(const SBI_Vec3 axis, float angle, SBI_Quat dest);
 
@@ -125,6 +128,9 @@ void SBI_XFormToView(const SBI_XForm xform, SBI_Mat4 view);
 
 // Create a model matrix from an transform
 void SBI_XFormToModel(const SBI_XForm xform, SBI_Mat4 model);
+
+// Get the position of a transform
+void SBI_XFormGetPosition(const SBI_XForm xform, SBI_Vec3 position);
 
 #define SBI_Rads(x) ((x)*0.01745329f)
 #endif /* SBI_XMATH_H */

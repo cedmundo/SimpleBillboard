@@ -1,11 +1,16 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_timer.h>
 
+#include "billboard.h"
 #include "simulation.h"
 
 bool SBI_SimulationLoad(SBI_Simulation* state) {
   SBI_CameraLoad(&state->camera, state->viewport.w / state->viewport.h);
   if (!SBI_GridLoad(&state->grid, state->device, state->window)) {
+    return false;
+  }
+
+  if (!SBI_BillboardLoad(&state->billboard, state->device, state->window)) {
     return false;
   }
 
@@ -69,6 +74,12 @@ bool SBI_SimulationRender(SBI_Simulation* state, float dt) {
       // Draw the grid
       SBI_GridDraw(&state->grid, camera->proj, camera->view, cmd_buf,
                    render_pass);
+
+      // Draw the billboard
+      SBI_ALIGN_VEC3 SBI_Vec3 view_pos = {0};
+      SBI_XFormGetPosition(camera->xform, view_pos);
+      SBI_BillboardDraw(&state->billboard, camera->proj, camera->view, view_pos,
+                        cmd_buf, render_pass);
     }
     SDL_EndGPURenderPass(render_pass);
   }
@@ -80,5 +91,6 @@ bool SBI_SimulationRender(SBI_Simulation* state, float dt) {
 }
 
 void SBI_SimulationDestroy(SBI_Simulation* state) {
-  SBI_GridUnload(&state->grid);
+  SBI_GridDestroy(&state->grid);
+  SBI_BillboardDestroy(&state->billboard);
 }
