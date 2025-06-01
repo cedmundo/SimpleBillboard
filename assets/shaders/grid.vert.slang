@@ -4,7 +4,7 @@ struct ViewParams {
 };
 
 struct VSInput {
-  uint idx : SV_VertexID;
+  uint vertexID : SV_VertexID;
 };
 
 struct VSOutput {
@@ -14,7 +14,7 @@ struct VSOutput {
   float4 position : SV_Position;
 };
 
-static const float2[] quad_vertices = {
+static const float2[] quadXYVertices = {
   float2(-1.0f, +1.0f),  // bottom left
   float2(-1.0f, -1.0f),  // top left
   float2(+1.0f, -1.0f),  // top right
@@ -33,7 +33,7 @@ layout(set = 1, binding = 0) ConstantBuffer<ViewParams> viewParams;
 [shader("vertex")]
 VSOutput vertexMain(VSInput input) {
   VSOutput output;
-  float2 vertexPos = quad_vertices[input.idx];
+  float2 vertexPos = quadXYVertices[input.vertexID];
   output.pv = viewParams.pv;
   output.nearPoint =
       unprojectedPoint(vertexPos.x, vertexPos.y, 0.01f, viewParams.pvInv);

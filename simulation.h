@@ -11,7 +11,7 @@
 #include "grid.h"
 #include "shader.h"
 
-#define MAX_PARTICLES (10000)
+#define BILLBOARD_COUNT (10)
 
 // Global values for the simulation
 typedef struct {

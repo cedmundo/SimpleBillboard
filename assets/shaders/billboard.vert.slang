@@ -3,8 +3,13 @@ struct ViewParams {
   float3 viewPos;
 };
 
+struct BillboardInstance {
+  float4 ps;
+};
+
 struct VSInput {
-  uint idx : SV_VertexID;
+  uint vertexID : SV_VertexID;
+  uint instanceID : SV_InstanceID;
 };
 
 struct VSOutput {
@@ -21,16 +26,17 @@ static const float2[] quadXYVertices = {
   float2(-1.0f, +1.0f),  // bottom left
 };
 
+layout(set = 0, binding = 0) StructuredBuffer<BillboardInstance> instances;
 layout(set = 1, binding = 0) ConstantBuffer<ViewParams> viewParams;
 
 [shader("vertex")]
 VSOutput vertexMain(VSInput input) {
   VSOutput output;
-  // TODO(cedmundo): Set position and scale from instance
-  float3 bPos = float3(0);
-  float scale = 0.5;
+  BillboardInstance instance = instances[input.instanceID];
+  float3 bPos = float3(instance.ps.x, instance.ps.y, instance.ps.z);
+  float scale = instance.ps.w;
 
-  float4 vertexPos = float4(quadXYVertices[input.idx], 0.0f, 1.0f);
+  float4 vertexPos = float4(quadXYVertices[input.vertexID], 0.0f, 1.0f);
   float3 f = normalize(viewParams.viewPos - bPos);
   float3 u = normalize(cross(f, float3(0, 1, 0)));
   float3 r = normalize(cross(u, f));
@@ -40,9 +46,9 @@ VSOutput vertexMain(VSInput input) {
   r *= scale;
 
   float4x4 model = {
-    { r.x, u.x, f.x, 0 },
-    { r.y, u.y, f.y, 0 },
-    { r.z, u.z, f.z, 0 },
+    { r.x, u.x, f.x, bPos.x },
+    { r.y, u.y, f.y, bPos.y },
+    { r.z, u.z, f.z, bPos.z },
     { 0, 0, 0, 1 },
   };
   output.pv = viewParams.pv;

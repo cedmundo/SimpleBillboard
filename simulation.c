@@ -10,7 +10,8 @@ bool SBI_SimulationLoad(SBI_Simulation* state) {
     return false;
   }
 
-  if (!SBI_BillboardLoad(&state->billboard, state->device, state->window)) {
+  if (!SBI_BillboardLoad(&state->billboard, state->device, state->window,
+                         BILLBOARD_COUNT)) {
     return false;
   }
 

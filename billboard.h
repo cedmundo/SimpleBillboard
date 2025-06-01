@@ -7,12 +7,16 @@
 typedef struct {
   SDL_GPUDevice* device;
   SDL_GPUGraphicsPipeline* pipeline;
-  SBI_ALIGN_VEC3 SBI_Vec3 position;
+  SDL_GPUBuffer* buffer;
+  SDL_GPUTransferBuffer* upload_transfer_buffer;
+  SBI_Vec4* instances;
+  Uint64 instances_count;
 } SBI_Billboard;
 
 bool SBI_BillboardLoad(SBI_Billboard* billboard,
                        SDL_GPUDevice* device,
-                       SDL_Window* window);
+                       SDL_Window* window,
+                       Uint64 instances_count);
 
 void SBI_BillboardDraw(SBI_Billboard* grid,
                        const SBI_Mat4 proj,
