@@ -8,7 +8,6 @@
 
 #include "camera.h"
 #include "grid.h"
-#include "particle_system.h"
 #include "shader.h"
 
 #define MAX_PARTICLES (10000)
@@ -18,7 +17,6 @@ typedef struct {
   SDL_Window* window;
   SDL_GPUDevice* device;
   SDL_GPUViewport viewport;
-  SBI_ParticleSystem particle_system;
   SBI_Camera camera;
   SBI_Grid grid;
   Uint64 last_tick;

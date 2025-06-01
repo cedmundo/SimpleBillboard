@@ -1,19 +1,11 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_timer.h>
 
-#include "particle_system.h"
 #include "simulation.h"
 
 bool SBI_SimulationLoad(SBI_Simulation* state) {
   SBI_CameraLoad(&state->camera, state->viewport.w / state->viewport.h);
   if (!SBI_GridLoad(&state->grid, state->device, state->window)) {
-    return false;
-  }
-
-  if (!SBI_ParticleSystemInit(&state->particle_system, MAX_PARTICLES,
-                              state->device, state->window)) {
-    SDL_Log("Could not initialize particle system for %d particles!",
-            MAX_PARTICLES);
     return false;
   }
 
@@ -39,9 +31,6 @@ void SBI_SimulationUpdate(SBI_Simulation* state, float dt) {
   {
     SBI_CameraUpdate(&state->camera, state->window, state->relative_mouse_wheel,
                      dt);
-
-    SBI_ParticleSystemUpdate(&state->particle_system, dt);
-    // SBI_ParticleSystemDebug(&state->particle_system);
   }
   state->relative_mouse_wheel = 0.0f;
 }
@@ -79,10 +68,6 @@ bool SBI_SimulationRender(SBI_Simulation* state, float dt) {
 
       // Draw the grid
       SBI_GridDraw(&state->grid, camera->proj, camera->view, render_pass);
-
-      // Draw the particles
-      SBI_ParticleSystemDraw(&state->particle_system, camera->proj,
-                             camera->view, render_pass);
     }
     SDL_EndGPURenderPass(render_pass);
   }
@@ -95,5 +80,4 @@ bool SBI_SimulationRender(SBI_Simulation* state, float dt) {
 
 void SBI_SimulationDestroy(SBI_Simulation* state) {
   SBI_GridUnload(&state->grid);
-  SBI_ParticleSystemDestroy(&state->particle_system);
 }
